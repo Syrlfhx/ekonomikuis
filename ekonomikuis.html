@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuis Kegiatan Ekonomi</title>
+<style>
+  body {
+    font-family: "Poppins", sans-serif;
+    background-color: #f0f7f4;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  #quiz-box {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+  }
+  h2 {
+    text-align: center;
+    color: #00796b;
+  }
+  .option {
+    display: block;
+    background: #e0f2f1;
+    border: none;
+    margin: 8px 0;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+  }
+  .option:hover {
+    background: #b2dfdb;
+  }
+  .correct {
+    background-color: #a5d6a7 !important;
+  }
+  .wrong {
+    background-color: #ef9a9a !important;
+  }
+  #next-btn, #restart-btn {
+    margin-top: 15px;
+    background: #00796b;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    font-size: 16px;
+  }
+  #next-btn:hover, #restart-btn:hover {
+    background: #004d40;
+  }
+  #feedback {
+    margin-top: 10px;
+    text-align: center;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<div id="quiz-box">
+  <h2 id="question">Memuat soal...</h2>
+  <div id="options"></div>
+  <div id="feedback"></div>
+  <button id="next-btn">Soal Selanjutnya</button>
+  <button id="restart-btn" style="display:none;">Ulangi Kuis</button>
+</div>
+
+<script>
+const quizData = [
+  {
+    question: "1. Apa pengertian kegiatan ekonomi?",
+    options: ["Kegiatan bermain bersama teman", "Kegiatan memenuhi kebutuhan hidup", "Kegiatan hiburan masyarakat", "Kegiatan olahraga di sekolah"],
+    answer: 1,
+    explain: "Kegiatan ekonomi adalah kegiatan manusia untuk memenuhi kebutuhan hidupnya."
+  },
+  {
+    question: "2. Membeli makanan di warung termasuk kegiatan ekonomi jenis apa?",
+    options: ["Produksi", "Distribusi", "Konsumsi", "Pemasaran"],
+    answer: 2,
+    explain: "Membeli dan menggunakan barang/jasa adalah contoh kegiatan konsumsi."
+  },
+  {
+    question: "3. Petani menanam padi dan menjual hasilnya ke pasar. Ia melakukan kegiatan...",
+    options: ["Produksi", "Distribusi", "Konsumsi", "Investasi"],
+    answer: 0,
+    explain: "Petani menghasilkan barang (padi), berarti melakukan kegiatan produksi."
+  },
+  {
+    question: "4. Sopir truk yang mengantar barang dari pabrik ke toko termasuk kegiatan...",
+    options: ["Produksi", "Distribusi", "Konsumsi", "Promosi"],
+    answer: 1,
+    explain: "Mengirim barang dari produsen ke konsumen disebut distribusi."
+  },
+  {
+    question: "5. Orang yang menjual sayur di pasar berperan sebagai...",
+    options: ["Konsumen", "Distributor", "Produsen", "Pembeli"],
+    answer: 1,
+    explain: "Penjual sayur menyalurkan barang dari produsen ke konsumen, jadi ia distributor."
+  },
+  {
+    question: "6. Jika masyarakat rajin bekerja dan berusaha, maka kehidupan mereka akan...",
+    options: ["Menurun", "Tetap miskin", "Semakin sejahtera", "Tidak berubah"],
+    answer: 2,
+    explain: "Kegiatan ekonomi yang baik meningkatkan kesejahteraan masyarakat."
+  },
+  {
+    question: "7. Membuat kerajinan tangan dari bahan bekas termasuk kegiatan...",
+    options: ["Distribusi", "Produksi", "Konsumsi", "Transportasi"],
+    answer: 1,
+    explain: "Menghasilkan barang baru termasuk kegiatan produksi."
+  },
+  {
+    question: "8. Mengapa kegiatan ekonomi penting bagi masyarakat?",
+    options: ["Agar bisa bersantai", "Agar memenuhi kebutuhan hidup", "Agar tidak bosan", "Agar tidak belajar"],
+    answer: 1,
+    explain: "Tujuan utama kegiatan ekonomi adalah memenuhi kebutuhan hidup manusia."
+  },
+  {
+    question: "9. Ketika kita membeli jajanan di kantin sekolah, kita disebut...",
+    options: ["Produsen", "Konsumen", "Distributor", "Pekerja"],
+    answer: 1,
+    explain: "Kita menggunakan barang/jasa, maka kita berperan sebagai konsumen."
+  },
+  {
+    question: "10. Hubungan antara petani, pedagang, dan pembeli menunjukkan adanya...",
+    options: ["Rantai ekonomi", "Perlombaan", "Kegiatan sosial", "Proyek sekolah"],
+    answer: 0,
+    explain: "Ketiganya saling terhubung dalam rantai kegiatan ekonomi."
+  }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let wrongAnswers = [];
+let rightAnswers = [];
+
+const questionEl = document.getElementById("question");
+const optionsEl = document.getElementById("options");
+const feedbackEl = document.getElementById("feedback");
+const nextBtn = document.getElementById("next-btn");
+const restartBtn = document.getElementById("restart-btn");
+
+function loadQuestion() {
+  feedbackEl.textContent = "";
+  const current = quizData[currentQuestion];
+  questionEl.textContent = current.question;
+  optionsEl.innerHTML = "";
+  current.options.forEach((opt, i) => {
+    const button = document.createElement("button");
+    button.textContent = opt;
+    button.classList.add("option");
+    button.onclick = () => checkAnswer(i);
+    optionsEl.appendChild(button);
+  });
+  nextBtn.style.display = "none";
+}
+
+function checkAnswer(selected) {
+  const current = quizData[currentQuestion];
+  const buttons = document.querySelectorAll(".option");
+  buttons.forEach(btn => btn.disabled = true);
+  
+  if (selected === current.answer) {
+    buttons[selected].classList.add("correct");
+    feedbackEl.textContent = "✅ Benar! " + current.explain;
+    score++;
+    rightAnswers.push(currentQuestion + 1);
+  } else {
+    buttons[selected].classList.add("wrong");
+    buttons[current.answer].classList.add("correct");
+    feedbackEl.textContent = "❌ Salah. " + current.explain;
+    wrongAnswers.push(currentQuestion + 1);
+  }
+  nextBtn.style.display = "block";
+}
+
+nextBtn.onclick = () => {
+  currentQuestion++;
+  if (currentQuestion < quizData.length) {
+    loadQuestion();
+  } else {
+    showResults();
+  }
+};
+
+function showResults() {
+  questionEl.textContent = "🎉 Kuis Selesai!";
+  optionsEl.innerHTML = `<p><strong>Skor Akhir:</strong> ${score} dari ${quizData.length}</p>
+  <p>✅ Benar di nomor: ${rightAnswers.join(", ") || "-"}</p>
+  <p>❌ Salah di nomor: ${wrongAnswers.join(", ") || "-"}</p>`;
+  feedbackEl.textContent = "Terima kasih sudah mengerjakan kuis!";
+  nextBtn.style.display = "none";
+  restartBtn.style.display = "block";
+}
+
+restartBtn.onclick = () => {
+  currentQuestion = 0;
+  score = 0;
+  wrongAnswers = [];
+  rightAnswers = [];
+  restartBtn.style.display = "none";
+  loadQuestion();
+};
+
+loadQuestion();
+</script>
+</body>
+</html>
